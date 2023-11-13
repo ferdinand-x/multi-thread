@@ -1,11 +1,12 @@
+package chapter1.chapter1.create_thread;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author : PARADISE
- * @ClassName : CreateThread
+ * @ClassName : chapter1.chapter1.create_thread.CreateThread
  * @description : how to create and use thread
  * @since : 2023/11/7 0:00
  */
