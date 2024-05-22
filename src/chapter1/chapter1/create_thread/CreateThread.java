@@ -1,8 +1,12 @@
 package chapter1.chapter1.create_thread;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.concurrent.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author : PARADISE
@@ -12,28 +16,67 @@ import java.util.concurrent.FutureTask;
  */
 public class CreateThread {
 
+    private static final ExecutorService TASK_EXECUTOR = Executors.newFixedThreadPool(1);
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
         // 1. create task
         // 1.1 use the thread child
-        ThreadChild thread1 = new ThreadChild("thread-child");
-        // 1.2 use the runnable child
-        RunnableChild runnableChild = new RunnableChild();
-        Thread thread2 = new Thread(runnableChild, "runnable-child");
-        // 1.3 use the callable child <RunnableFuture extends Runnable>
-        CallableChild callableChild = new CallableChild();
-        FutureTask<String> futureTask = new FutureTask<>(callableChild);
-        Thread thread3 = new Thread(futureTask, "callable-child");
-
-        // 2. start thread
-        System.out.printf("[%s]-Main thread start...%n", Thread.currentThread().getName());
-        thread1.start();
-        thread2.start();
-        thread3.start();
+//        ThreadChild thread1 = new ThreadChild("thread-child");
+//        // 1.2 use the runnable child
+//        RunnableChild runnableChild = new RunnableChild();
+//        Thread thread2 = new Thread(runnableChild, "runnable-child");
+//        // 1.3 use the callable child <RunnableFuture extends Runnable>
+//        CallableChild callableChild = new CallableChild();
+//        FutureTask<String> futureTask = new FutureTask<>(callableChild);
+//        Thread thread3 = new Thread(futureTask, "callable-child");
+//
+//        // 2. start thread
+//        System.out.printf("[%s]-Main thread start...%n", Thread.currentThread().getName());
+//        thread1.start();
+//        thread2.start();
+//        thread3.start();
 
         // 3. future call get result. let me echo it.
-        String futureRes = futureTask.get();
-        System.out.printf("Future task result:%s%n", futureRes);
+//        String futureRes = futureTask.get();
+//        System.out.printf("Future task result:%s%n", futureRes);
+        var futures = IntStream.range(0, 10).boxed().map(CreateThread::task).toArray(CompletableFuture[]::new);
+//        var bigFuture = CompletableFuture.allOf(futures);
+//        bigFuture.join();
+
+        var start = System.currentTimeMillis();
+        var results = Arrays.stream(futures)
+                .map(CreateThread::getResult)
+                .collect(Collectors.toList());
+        System.out.println(results);
+        var end = System.currentTimeMillis();
+        var duration = end-start;
+        System.out.println(duration);
+        TASK_EXECUTOR.shutdown();
+    }
+
+    private static Integer getResult(CompletableFuture<Integer> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException ignore) {
+            return null;
+        }
+    }
+
+    private static CompletableFuture<Integer> task(Integer i) {
+        Supplier<Integer> supplier = () -> {
+            if (i % 2 == 0) {
+                try {
+                    System.out.println(Thread.currentThread().getName());
+                    TimeUnit.SECONDS.sleep(2);
+                } catch (InterruptedException ignore) {
+                }
+            }
+            return i;
+        };
+        return CompletableFuture.supplyAsync(supplier, TASK_EXECUTOR)
+                .orTimeout(1, TimeUnit.SECONDS)
+                .exceptionally(ex -> null);
     }
 
     static class ThreadChild extends Thread {
