@@ -22,45 +22,25 @@ public class CreateThread {
 
         // 1. create task
         // 1.1 use the thread child
-//        ThreadChild thread1 = new ThreadChild("thread-child");
-//        // 1.2 use the runnable child
-//        RunnableChild runnableChild = new RunnableChild();
-//        Thread thread2 = new Thread(runnableChild, "runnable-child");
-//        // 1.3 use the callable child <RunnableFuture extends Runnable>
-//        CallableChild callableChild = new CallableChild();
-//        FutureTask<String> futureTask = new FutureTask<>(callableChild);
-//        Thread thread3 = new Thread(futureTask, "callable-child");
-//
-//        // 2. start thread
-//        System.out.printf("[%s]-Main thread start...%n", Thread.currentThread().getName());
-//        thread1.start();
-//        thread2.start();
-//        thread3.start();
+       ThreadChild thread1 = new ThreadChild("thread-child");
+       // 1.2 use the runnable child
+       RunnableChild runnableChild = new RunnableChild();
+       Thread thread2 = new Thread(runnableChild, "runnable-child");
+       // 1.3 use the callable child <RunnableFuture extends Runnable>
+       CallableChild callableChild = new CallableChild();
+       FutureTask<String> futureTask = new FutureTask<>(callableChild);
+       Thread thread3 = new Thread(futureTask, "callable-child");
 
-        // 3. future call get result. let me echo it.
-//        String futureRes = futureTask.get();
-//        System.out.printf("Future task result:%s%n", futureRes);
-        var futures = IntStream.range(0, 10).boxed().map(CreateThread::task).toArray(CompletableFuture[]::new);
-//        var bigFuture = CompletableFuture.allOf(futures);
-//        bigFuture.join();
+       // 2. start thread
+       System.out.printf("[%s]-Main thread start...%n", Thread.currentThread().getName());
+       thread1.start();
+       thread2.start();
+       thread3.start();
 
-        var start = System.currentTimeMillis();
-        var results = Arrays.stream(futures)
-                .map(CreateThread::getResult)
-                .collect(Collectors.toList());
-        System.out.println(results);
-        var end = System.currentTimeMillis();
-        var duration = end-start;
-        System.out.println(duration);
+     // 3. future call get result. let me echo it.
+       String futureRes = futureTask.get();
+       System.out.printf("Future task result:%s%n", futureRes);
         TASK_EXECUTOR.shutdown();
-    }
-
-    private static Integer getResult(CompletableFuture<Integer> future) {
-        try {
-            return future.get();
-        } catch (InterruptedException | ExecutionException ignore) {
-            return null;
-        }
     }
 
     private static CompletableFuture<Integer> task(Integer i) {
